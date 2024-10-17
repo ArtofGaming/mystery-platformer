@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://e4qmpngrny7h"]
+
+[ext_resource type="Texture2D" uid="uid://duq1cq60icli3" path="res://spritesheet_ground.png" id="1_mpj23"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_mpj23")
+centered = false
+hframes = 8
+vframes = 16
