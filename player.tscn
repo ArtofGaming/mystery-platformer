@@ -32,6 +32,7 @@ animations = [{
 [node name="Player" type="Node2D"]
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+safe_margin = 31.11
 script = ExtResource("1_u5ihu")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
@@ -40,5 +41,3 @@ shape = SubResource("CapsuleShape2D_vqu0e")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D"]
 sprite_frames = SubResource("SpriteFrames_tvwcq")
-
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

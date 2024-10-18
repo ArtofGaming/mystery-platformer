@@ -7,11 +7,11 @@ class_name Cave extends Node
 @export var grid_height = 30
 @export var grid_width = 30
 var _atlas: Texture2D
-var _grid_size: int
-var tile_size = 0
+#var _grid_size: int
+var tile_size = 70
 
 var cave_name = ""
-
+var chance_to_become_wall: float = .45
 var cave_cell = CaveCell.new()
 
 # Called when the node enters the scene tree for the first time.
@@ -32,7 +32,10 @@ func _initialize_grid():
 		for x in range(grid_width):
 			var coordinate = [x,y]
 			var cell: CaveCell = cave_cell._init_with_coordinate(coordinate)
-			cell.type = CaveCell.CaveCellType.FLOOR
+			if (random_number_between_0_and_1() < chance_to_become_wall):
+				cell.type = CaveCell.CaveCellType.WALL
+			else:
+				cell.type = CaveCell.CaveCellType.FLOOR
 			row.append(cell)
 		grid.append(row)
 
@@ -56,6 +59,9 @@ func _cave_cell_from_coordinate(coordinate: Vector2) -> CaveCell:
 		return grid[coordinate.y][coordinate.x]
 	return null
 
+func random_number_between_0_and_1() -> float:
+	return randf_range(0,1)
+
 func _generate_tiles():
 	for y in range(grid_height):
 		for x in range(grid_width):
@@ -67,7 +73,10 @@ func _generate_tiles():
 			else:
 				sprite.frame = 1
 			add_child(blocks)
+			blocks.position = position_for_grid_coordinate(Vector2(x,y))
 
+func position_for_grid_coordinate(coordinate:Vector2) -> Vector2:
+	return Vector2(coordinate.x * tile_size, coordinate.y * tile_size)
 
-func _process(delta: float) -> void:
-	pass
+#func _process(delta: float) -> void:
+	#pass
