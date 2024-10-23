@@ -14,5 +14,6 @@ script = ExtResource("1_lwjju")
 visible = false
 position = Vector2(566, -217)
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
-offset = Vector2(0, 300)
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+zoom = Vector2(0.5, 0.5)

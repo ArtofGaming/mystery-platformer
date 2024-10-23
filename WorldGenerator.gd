@@ -7,12 +7,18 @@ class_name Cave extends Node
 @export var grid_height = 30
 @export var grid_width = 30
 var _atlas: Texture2D
-#var _grid_size: int
-var tile_size = 70
+var _grid_size: int
+var tile_size = 128
 
 var cave_name = ""
 var chance_to_become_wall: float = .45
 var cave_cell = CaveCell.new()
+
+var num_of_transition_steps: int = 2
+
+#number of cells in moore neighborhood to convert
+var floors_minimum_to_convert_to_wall: int = 4
+var walls_maximum_to_convert_to_floor: int = 3
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -39,10 +45,15 @@ func _initialize_grid():
 			row.append(cell)
 		grid.append(row)
 
-func _generate_with_seed(seed:int):
+func _generate_with_seed(my_seed:int):
 	print("Cave is being generated")
 	var start_date = Time.get_ticks_msec()
 	_initialize_grid()
+	for step in range(num_of_transition_steps):
+		var format_step_string = "Performing transition step #%s"
+		var step_string = format_step_string % (step + 1)
+		print(step_string)
+		do_transition_step()
 	_generate_tiles()
 	var format_time_string = "Generated in %s seconds"
 	var time_string = format_time_string % (Time.get_ticks_msec() - start_date)
@@ -69,14 +80,53 @@ func _generate_tiles():
 			var blocks: Node2D = Block.instantiate()
 			var sprite: Sprite2D = blocks.get_node("Sprite2D")
 			if (cell.type == cell.CaveCellType.WALL):
-				sprite.frame = 0
+				pass
 			else:
-				sprite.frame = 1
-			add_child(blocks)
-			blocks.position = position_for_grid_coordinate(Vector2(x,y))
+				#edit this to use 3x3 ground tiles
+				sprite.frame = 0
+				add_child(blocks)
+				blocks.position = position_for_grid_coordinate(Vector2(x,y))
 
 func position_for_grid_coordinate(coordinate:Vector2) -> Vector2:
 	return Vector2(coordinate.x * tile_size, coordinate.y * tile_size)
+
+func count_wall_moore_neighbors_from_grid_coordinate(coordinate:Vector2) -> int:
+	var wall_count:int = 0
+	for i in range(-1,2):
+		for j in range(-1,2):
+			if (i == 0 and j == 0):
+				break
+			var neighbor_coordinate = Vector2(coordinate.x + i, coordinate.y + j)
+			if (!_is_valid_coordinate(neighbor_coordinate)):
+				wall_count += 1
+			elif (_cave_cell_from_coordinate(neighbor_coordinate).type == CaveCell.CaveCellType.WALL):
+				wall_count += 1
+	return wall_count
+
+func do_transition_step():
+	var new_grid: Array = []
+	for y in range(grid_height):
+		var new_row: Array = []
+		for x in range(grid_width):
+			var coordinate = Vector2(x,y)
+			var moore_neighbor_wall_count = count_wall_moore_neighbors_from_grid_coordinate(coordinate)
+
+			var old_cell: CaveCell = _cave_cell_from_coordinate(coordinate)
+			var new_cell: CaveCell = CaveCell.new()._init_with_coordinate(coordinate)
+
+			if (old_cell.type == CaveCell.CaveCellType.WALL):
+				if (moore_neighbor_wall_count < walls_maximum_to_convert_to_floor):
+					new_cell.type = CaveCell.CaveCellType.FLOOR
+				else:
+					new_cell.type = CaveCell.CaveCellType.WALL
+			else:
+				if (moore_neighbor_wall_count > floors_minimum_to_convert_to_wall):
+					new_cell.type = CaveCell.CaveCellType.WALL
+				else:
+					new_cell.type = CaveCell.CaveCellType.FLOOR
+			new_row.append(new_cell)
+		new_grid.append(new_row)
+	grid = new_grid
 
 #func _process(delta: float) -> void:
 	#pass
