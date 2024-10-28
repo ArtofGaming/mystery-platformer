@@ -13,8 +13,9 @@ var tile_size = 128
 var cave_name = ""
 var chance_to_become_wall: float = .45
 var cave_cell = CaveCell.new()
+var caverns: Array = []
 
-var num_of_transition_steps: int = 2
+var num_of_transition_steps: int = 1
 
 #number of cells in moore neighborhood to convert
 var floors_minimum_to_convert_to_wall: int = 4
@@ -54,6 +55,7 @@ func _generate_with_seed(my_seed:int):
 		var step_string = format_step_string % (step + 1)
 		print(step_string)
 		do_transition_step()
+	identify_caverns()
 	_generate_tiles()
 	var format_time_string = "Generated in %s seconds"
 	var time_string = format_time_string % (Time.get_ticks_msec() - start_date)
@@ -128,5 +130,46 @@ func do_transition_step():
 		new_grid.append(new_row)
 	grid = new_grid
 
+func identify_caverns() -> void:
+	var array: Array = []
+	caverns = array
+	var flood_fill_array: Array = []
+
+	for y in range(grid_height):
+		var flood_fill_array_row: Array = []
+		
+		for x in range(grid_width):
+			var cell_to_copy: CaveCell = grid[y][x]
+			var copied_cell: CaveCell = CaveCell.new()._init_with_coordinate(cell_to_copy.coordinate)
+			copied_cell.type = cell_to_copy.type
+			flood_fill_array_row.append(copied_cell)
+		flood_fill_array.append(flood_fill_array_row)
+
+	var fill_number: int = CaveCell.CaveCellType.MAX
+
+	for y in range(grid_height):
+		for x in range(grid_width):
+			if ((flood_fill_array[y][x]).type == CaveCell.CaveCellType.FLOOR):
+				caverns.append(array)
+				flood_fill_caverns(flood_fill_array, Vector2(x,y), fill_number)
+				fill_number += 1
+	var format_cavern_count_string = "Number of caverns in cave: %s"
+	var cavern_count_string = format_cavern_count_string % (caverns.size())
+	print(cavern_count_string)
+
+
+func flood_fill_caverns(array: Array, from_coordinate: Vector2, fill_number: int) -> void:
+	var cell:CaveCell = array[from_coordinate.y][from_coordinate.x]
+	if (cell.type != CaveCell.CaveCellType.FLOOR):
+		return
+	cell.type = fill_number
+	[caverns[-1]].append(cell)
+	if (from_coordinate.x > 0):
+		flood_fill_caverns(array, Vector2(from_coordinate.x - 1, from_coordinate.y), fill_number)
+	if (from_coordinate.x < grid_width - 1):
+		flood_fill_caverns(array, Vector2(from_coordinate.x + 1, from_coordinate.y), fill_number)
+	if (from_coordinate.y > 0):
+		flood_fill_caverns(array, Vector2(from_coordinate.x, from_coordinate.y - 1), fill_number)
+	if (from_coordinate.y < grid_height - 1):
+		flood_fill_caverns(array, Vector2(from_coordinate.x, from_coordinate.y + 1), fill_number)
 #func _process(delta: float) -> void:
-	#pass
